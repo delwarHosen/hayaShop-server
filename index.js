@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, Admin } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000;
@@ -30,11 +30,34 @@ async function run() {
         const productCollection = client.db('hayaShop').collection('products')
         const cartCollection = client.db('hayaShop').collection('carts')
 
+        // verify Admin
+
+        // const verifyAdmin = async (req, res, next) => {
+        //     const email = req.params.email;
+        //     const query = { email: email }
+        //     const user = await userCollection.findOne(query)
+        //     const isAdmin = user?.role = 'admin';
+        //     if (!isAdmin) {
+        //         return res.status(403).send{ message: 'Forbidden Access' }
+        //     }
+        //     next()
+        // }
 
         // user related api
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray()
             res.send(result)
+        })
+
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query)
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+            }
+            res.send({ admin })
         })
 
         app.post('/users', async (req, res) => {
@@ -73,14 +96,16 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/products', async (req, res) => {
+            const item = req.body;
+            const result = await productCollection.insertOne(item);
+            res.send(result)
+        })
+
         app.get('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await productCollection.findOne(query);
-
-            // const option = {
-            //     projection:{ title:1} 
-            // }
+            const result = await productCollection.findOne(query)
             res.send(result)
 
         })
