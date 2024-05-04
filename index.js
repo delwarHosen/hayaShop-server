@@ -30,19 +30,6 @@ async function run() {
         const productCollection = client.db('hayaShop').collection('products')
         const cartCollection = client.db('hayaShop').collection('carts')
 
-        // verify Admin
-
-        // const verifyAdmin = async (req, res, next) => {
-        //     const email = req.params.email;
-        //     const query = { email: email }
-        //     const user = await userCollection.findOne(query)
-        //     const isAdmin = user?.role = 'admin';
-        //     if (!isAdmin) {
-        //         return res.status(403).send{ message: 'Forbidden Access' }
-        //     }
-        //     next()
-        // }
-
         // user related api
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray()
@@ -109,6 +96,35 @@ async function run() {
             res.send(result)
 
         })
+
+        app.patch('/products/:id', async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    name: item.name,
+                    category: item.category,
+                    details: item.details,
+                    price: item.price,
+                    rating: item.rating,
+                    type: item.type,
+                    image: item.price
+                }
+            }
+            const result = await productCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
+
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await productCollection.deleteOne(query)
+            res.send(result)
+        })
+
+
+        // cart related api
 
         app.get('/carts', async (req, res) => {
             const email = req.query.email;
